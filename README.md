@@ -4,7 +4,7 @@
 - Spring Boot
 - Spring MVC
 - OpenAPI 3 specification
-- openapi-generator-maven-plugin by 
+- openapi-generator-maven-plugin by OpenAPI Tools
 - springdoc-openapi
 - Spring Data
 
