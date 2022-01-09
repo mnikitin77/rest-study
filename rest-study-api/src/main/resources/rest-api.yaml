@@ -1,0 +1,234 @@
+openapi: 3.0.2
+
+info:
+  title: RESTful study project API
+  description: A simple study RESTFul API.
+  version: 0.0.1
+  
+servers:
+  - url: http://localhost:8089/api/v1
+
+paths:
+  /animals:
+    get:
+      operationId: getAnimals
+      tags:
+        - Animals
+      summary: List of all Animals.
+      description: Returns a list of all Animals available in the farm.
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+      responses:
+        '200':    # status code
+          $ref: '#/components/responses/OkAll'
+    post:
+      operationId: addAnimal
+      tags:
+        - Animals
+      summary: Adds an animal.
+      description: Stores a new animal in the database.
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+      requestBody:
+        description: The animal object to add.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalDto'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Created resource location URI.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    put:
+      operationId: updateAnimal
+      tags:
+        - Animals
+      summary: Update the animal.
+      description: Updates the animal's properties by those provided in the request.
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+      requestBody:
+        description: The animal object to update.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalDto'
+      responses:
+        '200':
+          description: Ok
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /animals/{id}:
+    get:
+      operationId: getAnimal
+      tags:
+        - Animals
+      summary: Retrieves the animal.
+      description: Retrieves the animal by id.
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+        - $ref: '#/components/parameters/id' 
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnimalDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      operationId: deleteAnimal
+      tags:
+        - Animals
+      summary: Deletes the animal.
+      description: Deletes the animal by id.
+      parameters:
+        - $ref: '#/components/parameters/requestId'
+        - $ref: '#/components/parameters/id' 
+      responses:
+        '200':
+          description: Ok
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    requestId:
+      in: header
+      name: X-Request-ID
+      schema:
+        type: string
+        format: uuid
+      required: true
+      description: Unique request ID
+      example: f7d7c60a-eca2-48ad-960a-6ad1fe8bac17
+    id:
+      in: path
+      name: id
+      schema:
+        type: integer
+        format: int64
+      required: true
+      description: Id of the requested animal
+      example: 123
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    BadRequest:
+      description: Incorrect request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorDto'
+    OkAll:
+      description: Ok
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AnimalsListDto'
+  schemas:
+    AnimalsListDto:
+      type: object
+      properties:
+        animals:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnimalDto'
+      required:
+      - animals
+    AnimalDto:
+      discriminator:
+        propertyName: type
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 1
+        name:
+          type: string
+        birthYear:
+          type: integer
+          minimum: 2000
+        animalType:
+          $ref: '#/components/schemas/AnimalTypeDto'
+        type:
+          type: string
+      required:
+      - name
+      - animalType
+    CowDto:
+      allOf:
+      - $ref: '#/components/schemas/AnimalDto'
+      - type: object
+        properties:
+          givesMilk:
+            type: boolean
+        required:
+        - givesMilk
+    ChickenDto:
+      allOf:
+      - $ref: '#/components/schemas/AnimalDto'
+      - type: object
+        properties:
+          givesEggs:
+            type: boolean
+        required:
+        - givesEggs
+    SheepDto:
+      allOf:
+      - $ref: '#/components/schemas/AnimalDto'
+      - type: object
+        properties:
+          givesWool:
+            type: boolean
+        required:
+        - givesWool
+    GoatDto:
+      allOf:
+      - $ref: '#/components/schemas/AnimalDto'
+      - type: object
+        properties:
+          givesMilk:
+            type: boolean
+        required:
+        - givesMilk
+    AnimalTypeDto:
+      type: string
+      enum:
+        - CATTLE
+        - POULTRY
+        - REPTILE
+        - INSECT
+        - FISH
+    ErrorDto:
+      type: object
+      properties:
+        requestId:
+          type: string
+        message:
+          type: string
+        url:
+          type: string
+        code:
+          type: integer
+      required:
+      - requestId
+      - message
+      - url
+      - code
